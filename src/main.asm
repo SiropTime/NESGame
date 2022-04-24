@@ -28,32 +28,40 @@ RTI ; возврат из прерывания
     STX PPUADDR ; сохраняем старший байт адреса в PPUADDR
     LDX #$00 ; вторая часть загрузки адреса палитр PPU в память ($3f00)
     STX PPUADDR ; сохраняем младший адреса байт в PPUADDR
-    ; загружаем цвет в ППУ через 2007 адрес
-    LDA #$1c ; загружаем в аккумулятор индекс цвета
-    STA PPUDATA ; сохраняем цвет в PPU
-    LDA #$19
-    STA PPUDATA
-    LDA #$09
-    STA PPUDATA
-    LDA #$0f
-    STA PPUDATA
+    load_palettes:
+      LDA palettes, X
+      STA PPUDATA
+      INX
+      CPX #$10
+      BNE load_palettes
     ; загрузка данных о спрайте
-    LDA #$70
-    STA $0200 ; Y-координата первого спрайта
-    LDA #$05
-    STA $0201 ; номер тайла первого спрайта
-    LDA #$00
-    STA $0202 ; атрибуты первого спрайта
-    LDA #$80
-    STA $0203 ; X-координата первого спрайта
-    
+    LDX #$00
+    load_sprites:
+      LDA sprites, X
+      STA $0200, X
+      INX
+      CPX #$10
+      BNE load_sprites
   forever:
     JMP forever
 .endproc
 
 .segment "VECTORS" ; передача процессору обработчиков прерываний
 .addr nmi_handler, reset_handler, irq_handler ; даёт адрес памяти, соответствующий метке
-; то есть мы даём записываем в нужные адреса памяти обработчики прерываний
+
+; Данные
+.segment "RODATA"
+palettes:
+  .byte $29, $19, $09, $0f
+  .byte $2c, $1c, $0c, $0f
+  .byte $24, $14, $04, $0f
+  .byte $22, $12, $02, $0f
+sprites:
+  ; Y, Номер тайла, Аттрибуты, X
+  .byte $70, $05, $00, $80 
+  .byte $70, $06, $00, $88
+  .byte $78, $07, $00, $80
+  .byte $78, $08, $00, $88
 
 .segment "CHR"
 .incbin "graphics.chr"
