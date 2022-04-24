@@ -1,0 +1,6 @@
+; Константы адресов обращения к PPU
+PPUCTRL = $2000
+PPUMASK = $2001
+PPUSTATUS = $2002
+PPUADDR = $2006
+PPUDATA = $2007
