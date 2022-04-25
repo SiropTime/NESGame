@@ -13,6 +13,9 @@ RTI ; возврат из прерывания
   ; передаём 256 байтов в промежутке 0200-02ff в OAM
   LDA #$02
   STA OAMDMA
+  LDA #$00
+  STA $2005
+  STA $2005
   RTI
 .endproc
 
@@ -32,7 +35,7 @@ RTI ; возврат из прерывания
       LDA palettes, X
       STA PPUDATA
       INX
-      CPX #$10
+      CPX #$20
       BNE load_palettes
     ; загрузка данных о спрайте
     LDX #$00
@@ -42,6 +45,41 @@ RTI ; возврат из прерывания
       INX
       CPX #$10
       BNE load_sprites
+      
+      ; Загружаем большую звезду
+      ; nametable
+      LDA PPUSTATUS
+      LDA #$21
+      STA PPUADDR
+      LDA #$62
+      STA PPUADDR
+      LDX #$2f
+      STX PPUDATA
+      ; attribute
+      LDA PPUSTATUS
+      LDA #$23
+      STA PPUADDR
+      LDA #$d0
+      STA PPUADDR
+      LDA #%01000000
+      STA PPUDATA
+      ; Загружаем ещё
+      LDA PPUSTATUS
+      LDA #$22
+      STA PPUADDR
+      LDA #$3b
+      STA PPUADDR
+      LDX #$2f
+      STX PPUDATA
+
+      LDA PPUSTATUS
+      LDA #$23
+      STA PPUADDR
+      LDA #$06
+      STA PPUADDR
+      LDA #%00001000
+
+
   forever:
     JMP forever
 .endproc
@@ -52,10 +90,16 @@ RTI ; возврат из прерывания
 ; Данные
 .segment "RODATA"
 palettes:
-  .byte $29, $19, $09, $0f
-  .byte $2c, $1c, $0c, $0f
-  .byte $24, $14, $04, $0f
-  .byte $22, $12, $02, $0f
+  ; палитры фонов
+  .byte $0f, $12, $23, $27
+  .byte $0f, $2b, $3c, $39
+  .byte $0f, $0c, $07, $13
+  .byte $0f, $19, $09, $29
+  ; палитры спрайтов
+  .byte $0f, $2d, $10, $15
+  .byte $0f, $19, $09, $29
+  .byte $0f, $19, $09, $29
+  .byte $0f, $19, $09, $29
 sprites:
   ; Y, Номер тайла, Аттрибуты, X
   .byte $70, $05, $00, $80 
@@ -64,4 +108,4 @@ sprites:
   .byte $78, $08, $00, $88
 
 .segment "CHR"
-.incbin "graphics.chr"
+.incbin "starfield.chr"

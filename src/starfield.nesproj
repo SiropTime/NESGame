@@ -1,0 +1,8 @@
+{
+  "filename": "starfield.nesproj",
+  "filepath": "F:\\assembler\\NESGame\\src\\starfield.nesproj",
+  "bank": 1,
+  "nametable": "F:\\assembler\\NESGame\\src\\starfield.nam",
+  "tileset": "F:\\assembler\\NESGame\\src\\starfield.chr",
+  "palettes": "F:\\assembler\\NESGame\\src\\starfield.pal"
+}

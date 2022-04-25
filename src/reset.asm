@@ -22,5 +22,20 @@
     STA PPUCTRL ; сохраняем данные значения в PPUMASK
     LDA #%00011110
     STA PPUMASK
-    JMP main ; переходим к главной программе
+  LDX #$00
+  LDA #$FF
+  ; Очищаем экран, чтобы избавиться от графических багов при инициализации
+  clear_oam:
+    STA $0200,X ; Задаём Y-координату всем спрайтам за пределами экрана
+    INX
+    INX
+    INX
+    INX
+    BNE clear_oam
+
+  vblankwait2:
+      BIT PPUSTATUS
+      BPL vblankwait2
+
+  JMP main ; переходим к главной программе
 .endproc
