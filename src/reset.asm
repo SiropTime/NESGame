@@ -1,5 +1,8 @@
 .include "constants.inc"
 
+.segment "ZEROPAGE"
+  .importzp player_x, player_y
+
 .segment "CODE"
 .import main
 .export reset_handler
@@ -10,6 +13,12 @@
     LDX #$00 ; устанавливаем отключение отрисовки лишнего мусора при инициализации
     STX PPUCTRL ; загружаем обновлённую маску в PPUCTRL
     STX PPUMASK ; загружаем обновлённую маску в PPUMASK
+
+    LDA #$80
+    STA player_x
+    LDA #$a0
+    STA player_y
+ 
   vblankwait:
     BIT PPUSTATUS ; получем состояние ППУ
     BPL vblankwait ; пока он не инициализируется окончательно
