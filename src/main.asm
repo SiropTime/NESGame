@@ -1,10 +1,12 @@
 .include "constants.inc"
 .include "header.inc"
 
+
 .segment "CODE"
 .proc irq_handler ; запрос прерывания
     RTI ; возврат из прерывания
 .endproc
+
 
 .proc nmi_handler ; немаскируемое прерывание
   ; подготавливаем PPU к передаче в OAM
@@ -20,6 +22,7 @@
   LDA #$00
   STA $2005
   STA $2005
+
   RTI
 .endproc
 
@@ -43,6 +46,8 @@
       BNE load_palettes
     ; загрузка данных о спрайте
     LDX #$00
+
+
     load_sprites:
       LDA sprites, X
       STA $0200, X
@@ -158,6 +163,7 @@
   RTS
 .endproc
 
+.import read_joypad
 .proc update_player
     PHP
     PHA
@@ -166,32 +172,8 @@
     TYA
     PHA
 
-    LDA player_x
-    CMP #$e0
-    ; BCC not_at_right_edge ; < Правой границы
-    ; LDA #$00
-    ; STA player_dir
-    INC player_x
+    JSR read_joypad
     JMP exit_subroutine
-    ; JMP direction_set
-
-  not_at_right_edge:
-    LDA player_x
-    CMP #$10
-    BCS direction_set ; > Больше левой границы
-    LDA #$01
-    STA player_dir
-
-  direction_set:
-    LDA player_dir
-    CMP #$01
-    BEQ move_right ; если не равно 1, меняем направление
-
-    DEC player_x
-    JMP exit_subroutine
-
-  move_right:
-    INC player_x
 
   exit_subroutine:
     PLA
@@ -210,6 +192,7 @@
   player_x: .res 1
   player_y: .res 1
   player_dir: .res 1
+  buttons: .res 1
 .exportzp player_x, player_y
 
 

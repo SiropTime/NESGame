@@ -18,6 +18,11 @@
     STA player_x
     LDA #$a0
     STA player_y
+
+    LDA #$01
+    STA JOYPAD1
+    LDA #$00
+    STA JOYPAD1
  
   vblankwait:
     BIT PPUSTATUS ; получем состояние ППУ
