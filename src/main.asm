@@ -8,6 +8,8 @@
 .endproc
 
 
+.import draw_player
+.import update_player
 .proc nmi_handler ; немаскируемое прерывание
   ; подготавливаем PPU к передаче в OAM
   LDA #$00 ; передаём с нулевого байта
@@ -93,97 +95,6 @@
     JMP forever
 .endproc
 
-.proc draw_player
-  ; Сохранение регистров в стеке, чтобы не привести к конфликтам
-  PHP
-  PHA
-  TXA
-  PHA
-  TYA
-  PHA
-
-  ; Записываем номера тайлов корабля
-  LDA #$10
-  STA $0201
-  LDA #$11
-  STA $0205
-  LDA #$20
-  STA $0209
-  LDA #$21
-  STA $020d
-
-  ; Записываем аттрибуты тайлов игрока
-  LDA #$00
-  STA $0202
-  STA $0206
-  STA $020a
-  STA $020e
-
-  ; Сохраняем координаты
-  ; Верхний левый тайл
-  LDA player_y
-  STA $0200
-  LDA player_x
-  STA $0203
-
-  ; Правый верхний
-  LDA player_y
-  STA $0204
-  LDA player_x
-  CLC
-  ADC #$08
-  STA $0207
-
-  ; Нижний левый
-  LDA player_y
-  CLC
-  ADC #$08
-  STA $0208
-  LDA player_x
-  STA $020b
-
-  ; Нижний правый
-  LDA player_y
-  CLC
-  ADC #$08
-  STA $020c
-  LDA player_x
-  CLC
-  ADC #$08
-  STA $020f
-
-  ; Восстанавливаем регистры и возвращаемся из функции
-  PLA
-  TAY
-  PLA
-  TAX
-  PLA
-  PLP
-
-  RTS
-.endproc
-
-.import read_joypad
-.proc update_player
-    PHP
-    PHA
-    TXA
-    PHA
-    TYA
-    PHA
-
-    JSR read_joypad
-    JMP exit_subroutine
-
-  exit_subroutine:
-    PLA
-    TAY
-    PLA
-    TAX
-    PLA
-    PLP
-    RTS
-.endproc
 
 .segment "VECTORS" ; передача процессору обработчиков прерываний
 .addr nmi_handler, reset_handler, irq_handler ; даёт адрес памяти, соответствующий метке
@@ -205,7 +116,7 @@ palettes:
   .byte $0f, $0c, $07, $13
   .byte $0f, $19, $09, $29
   ; палитры спрайтов
-  .byte $0f, $2d, $10, $15
+  .byte $0f, $2d, $20, $06
   .byte $0f, $19, $09, $29
   .byte $0f, $19, $09, $29
   .byte $0f, $19, $09, $29
