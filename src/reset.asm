@@ -14,11 +14,19 @@
     STX PPUCTRL ; загружаем обновлённую маску в PPUCTRL
     STX PPUMASK ; загружаем обновлённую маску в PPUMASK
 
+    ; Инициализируем игрока
     LDA #$80
     STA player_x
     LDA #$a0
     STA player_y
+    LDA #%00000001
+    STA $0202
+    STA $0206
+    LDA #%00000000
+    STA $020a
+    STA $020e
 
+    ; Обнуляем геймпад
     LDA #$01
     STA JOYPAD1
     LDA #$00

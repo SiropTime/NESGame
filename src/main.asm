@@ -8,7 +8,6 @@
 .endproc
 
 
-.import draw_player
 .import update_player
 .proc nmi_handler ; немаскируемое прерывание
   ; подготавливаем PPU к передаче в OAM
@@ -19,17 +18,17 @@
   STA OAMDMA
 
   JSR update_player
-  JSR draw_player
 
   LDA #$00
-  STA $2005
-  STA $2005
+  STA PPUSCROLL
+  STA PPUSCROLL
 
   RTI
 .endproc
 
 .import reset_handler
 
+.import nametable
 .export main
 .proc main
     ; загрузка палитры
@@ -57,6 +56,8 @@
       CPX #$10
       BNE load_sprites
       
+
+
       ; Загружаем большую звезду
       ; nametable
       LDA PPUSTATUS
@@ -102,8 +103,6 @@
 .segment "ZEROPAGE"
   player_x: .res 1
   player_y: .res 1
-  player_dir: .res 1
-  buttons: .res 1
 .exportzp player_x, player_y
 
 
@@ -117,7 +116,7 @@ palettes:
   .byte $0f, $19, $09, $29
   ; палитры спрайтов
   .byte $0f, $2d, $20, $06
-  .byte $0f, $19, $09, $29
+  .byte $0f, $2d, $07, $06
   .byte $0f, $19, $09, $29
   .byte $0f, $19, $09, $29
 sprites:

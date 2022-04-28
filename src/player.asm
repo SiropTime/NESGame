@@ -159,9 +159,10 @@
   TYA
   PHA
   ; Записываем аттрибуты тайлов игрока
-  LDA #%01000000
+  LDA #%01000001
   STA $0202
   STA $0206
+  LDA #%01000000
   STA $020a
   STA $020e
 
@@ -215,9 +216,10 @@
   TYA
   PHA
   ; Записываем аттрибуты тайлов игрока
-  LDA #$00
+  LDA #%00000001
   STA $0202
   STA $0206
+  LDA #%00000000
   STA $020a
   STA $020e
 
@@ -270,28 +272,5 @@
   TAX
   PLA
   PLP
-  RTS
-.endproc
-
-.export draw_player
-.proc draw_player
-  ; Сохранение регистров в стеке, чтобы не привести к конфликтам
-  PHP
-  PHA
-  TXA
-  PHA
-  TYA
-  PHA
-
-  
-
-  ; Восстанавливаем регистры и возвращаемся из функции
-  PLA
-  TAY
-  PLA
-  TAX
-  PLA
-  PLP
-
   RTS
 .endproc
