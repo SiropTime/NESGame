@@ -1,10 +1,11 @@
 .include "constants.inc"
 
 .segment "ZEROPAGE"
-  .importzp player_x, player_y
+  .importzp player_x, player_y, lt_tile_addr, rt_tile_addr, lb_tile_addr, rb_tile_addr, animate
 
 .segment "CODE"
 .import main
+.import nametable_loop
 .export reset_handler
 .proc reset_handler ; прерывание для резета или первого включения
     SEI ; задание бита игнорирования прерывания.
@@ -19,6 +20,17 @@
     STA player_x
     LDA #$a0
     STA player_y
+    LDA #$10
+    STA lt_tile_addr
+    LDA #$11
+    STA rt_tile_addr
+    LDA #$20
+    STA lb_tile_addr
+    LDA #$21
+    STA rb_tile_addr
+    LDA #$08
+    STA animate
+
     LDA #%00000001
     STA $0202
     STA $0206

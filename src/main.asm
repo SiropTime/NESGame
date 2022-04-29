@@ -7,7 +7,7 @@
     RTI ; возврат из прерывания
 .endproc
 
-
+.import nametable_loop
 .import update_player
 .proc nmi_handler ; немаскируемое прерывание
   ; подготавливаем PPU к передаче в OAM
@@ -17,8 +17,9 @@
   LDA #$02
   STA OAMDMA
 
+  
   JSR update_player
-
+  ; JSR nametable_loop
   LDA #$00
   STA PPUSCROLL
   STA PPUSCROLL
@@ -28,7 +29,6 @@
 
 .import reset_handler
 
-.import nametable
 .export main
 .proc main
     ; загрузка палитры
@@ -45,52 +45,52 @@
       INX
       CPX #$20
       BNE load_palettes
-    ; загрузка данных о спрайте
     LDX #$00
 
-
+    
     load_sprites:
       LDA sprites, X
       STA $0200, X
       INX
       CPX #$10
       BNE load_sprites
+
+
       
 
+    ;   ; Загружаем большую звезду
+    ;   ; nametable
+    ;   LDA PPUSTATUS
+    ;   LDA #$21
+    ;   STA PPUADDR
+    ;   LDA #$62
+    ;   STA PPUADDR
+    ;   LDX #$2f
+    ;   STX PPUDATA
+    ;   ; attribute
+    ;   LDA PPUSTATUS
+    ;   LDA #$23
+    ;   STA PPUADDR
+    ;   LDA #$d0
+    ;   STA PPUADDR
+    ;   LDA #%01000000
+    ;   STA PPUDATA
+    ;   ; Загружаем ещё
+    ;   LDA PPUSTATUS
+    ;   LDA #$22
+    ;   STA PPUADDR
+    ;   LDA #$3b
+    ;   STA PPUADDR
+    ;   LDX #$2f
+    ;   STX PPUDATA
 
-      ; Загружаем большую звезду
-      ; nametable
-      LDA PPUSTATUS
-      LDA #$21
-      STA PPUADDR
-      LDA #$62
-      STA PPUADDR
-      LDX #$2f
-      STX PPUDATA
-      ; attribute
-      LDA PPUSTATUS
-      LDA #$23
-      STA PPUADDR
-      LDA #$d0
-      STA PPUADDR
-      LDA #%01000000
-      STA PPUDATA
-      ; Загружаем ещё
-      LDA PPUSTATUS
-      LDA #$22
-      STA PPUADDR
-      LDA #$3b
-      STA PPUADDR
-      LDX #$2f
-      STX PPUDATA
-
-      LDA PPUSTATUS
-      LDA #$23
-      STA PPUADDR
-      LDA #$06
-      STA PPUADDR
-      LDA #%00001000
-
+    ;   LDA PPUSTATUS
+    ;   LDA #$23
+    ;   STA PPUADDR
+    ;   LDA #$06
+    ;   STA PPUADDR
+    ;   LDA #%00001000
+    
 
   forever:
     JMP forever
@@ -103,7 +103,15 @@
 .segment "ZEROPAGE"
   player_x: .res 1
   player_y: .res 1
-.exportzp player_x, player_y
+  lt_tile_addr: .res 1
+  rt_tile_addr: .res 1
+  lb_tile_addr: .res 1
+  rb_tile_addr: .res 1
+  addr_hi: .res 1
+  addr_lo: .res 1
+  animate: .res 1
+
+.exportzp player_x, player_y, lt_tile_addr, rt_tile_addr, lb_tile_addr, rb_tile_addr, animate
 
 
 ; Данные
@@ -125,6 +133,9 @@ sprites:
   .byte $70, $11, $00, $88
   .byte $78, $20, $00, $80
   .byte $78, $21, $00, $88
+nametable:
+  .incbin "nametable.map"
+
 
 .segment "CHR"
-.incbin "ninjastrike.chr"
+.incbin "ninjastrike1.chr"

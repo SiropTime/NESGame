@@ -1,7 +1,8 @@
 .include "constants.inc"
 
 .segment "ZEROPAGE"
-  .importzp player_x, player_y
+  .importzp player_x, player_y, animate
+  .importzp lt_tile_addr, rt_tile_addr, lb_tile_addr, rb_tile_addr
 
 .segment "CODE"
 .export read_joypad
@@ -113,6 +114,29 @@
     RTS
 .endproc
 
+.proc animate_player
+    PHP
+    PHA
+    TXA
+    PHA
+    TYA
+    PHA
+
+    LDA animate
+    TAX
+    loop:
+      DEX
+      BNE loop
+
+    PLA
+    TAY
+    PLA
+    TAX
+    PLA
+    PLP
+    RTS
+.endproc
+
 .proc load_coords_y
   PHP
   PHA
@@ -122,21 +146,21 @@
   PHA
 
   ; Сохраняем координаты
-  ; Верхний левый тайл
+  ; Верхний правый тайл
   LDA player_y
   STA $0204
 
-  ; Правый верхний
+  ; Левый верхний
   LDA player_y
   STA $0200
 
-  ; Нижний левый
+  ; Нижний правый
   LDA player_y
   CLC
   ADC #$08
   STA $020c
 
-  ; Нижний правый
+  ; Нижний левый
   LDA player_y
   CLC
   ADC #$08
