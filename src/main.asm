@@ -18,15 +18,6 @@
 
   JSR update_player
 
-  LDA #%00000000
-  STA PPUMASK
-  STA PPUCTRL
-
-
-      
-  lda PPUSTATUS
-  lda #%10000000
-  sta PPUCTRL
   LDA #%10010010
   STA PPUCTRL ; сохраняем данные значения в PPUMASK
   LDA #%00111110
@@ -62,29 +53,41 @@
       BNE load_palettes
       LDX #$00
     
-    load_background:
-      
-      LDA #$20
-      STA PPUADDR
-      LDA #$00
-      STA PPUADDR
+  LDA #%00000000
+  STA PPUMASK
+  STA PPUCTRL
+  STA PPUSCROLL
+  STA PPUSCROLL
 
+      load_background:
+      LDA PPUSTATUS
+      LDX #$20
+      STX PPUADDR
+      LDX #$00
+      STX PPUADDR
       LDA #<nametable
       STA addr_lo
       LDA #>nametable
-      STA addr_hi
+      STA addr_lo+1
+      LDA #$00
 
       LDX #$04
       LDY #$00
-
-    loop:
-      LDA (addr_lo), Y
-      STA PPUDATA
-      INY
-      BNE loop
-      INC addr_hi
-      DEX
-      BNE loop
+      loop:
+        LDA (addr_lo), Y
+        STA PPUDATA
+        INY
+        BNE loop
+        DEX
+        BEQ end
+        INC addr_lo+1
+        JMP loop
+      end:
+      
+  LDA #%10010010
+  STA PPUCTRL ; сохраняем данные значения в PPUMASK
+  LDA #%00111110
+  STA PPUMASK
 
     load_sprites:
       LDA sprites, X
@@ -111,12 +114,12 @@
   rt_tile_addr: .res 1
   lb_tile_addr: .res 1
   rb_tile_addr: .res 1
-  addr_hi: .res 1
-  addr_lo: .res 1
+  addr_lo: .res 2
+  count: .res 2
   animate: .res 1
 
 .exportzp player_x, player_y, lt_tile_addr, rt_tile_addr, lb_tile_addr, rb_tile_addr, animate
-.exportzp addr_lo, addr_hi
+.exportzp addr_lo
 
 ; Данные
 .segment "RODATA"
@@ -141,6 +144,7 @@ sprites:
 nametable:
 	; Карта, ака таблица имён
   .incbin "nametable.nam"
+
 
 .segment "CHR"
 .incbin "ninjastrike1.chr"
