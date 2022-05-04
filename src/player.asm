@@ -1,8 +1,7 @@
 .include "constants.inc"
 
 .segment "ZEROPAGE"
-  .importzp player_x, player_y, animate
-  .importzp lt_tile_addr, rt_tile_addr, lb_tile_addr, rb_tile_addr
+  .importzp player_x, player_y
 
 .segment "CODE"
 .export read_joypad
@@ -96,39 +95,6 @@
     TAX
     PLA
     PLP
-    RTS
-.endproc
-
-.proc animate_player
-  
-  animate:
-    LDA #$12
-    STA $0201
-    LDA #$13
-    STA $0205
-    LDA #$22
-    STA $0209
-    LDA #$23
-    STA $020d
-    LDX animate
-    loop:
-      DEX
-      BNE loop
-      BEQ end
-  end:
-    JSR unanimate_player
-    RTS
-.endproc
-
-.proc unanimate_player
-    LDA #$10
-    STA $0201
-    LDA #$11
-    STA $0205
-    LDA #$20
-    STA $0209
-    LDA #$21
-    STA $020d
     RTS
 .endproc
 

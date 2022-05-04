@@ -52,40 +52,44 @@
       CPX #$20
       BNE load_palettes
       LDX #$00
-    
+  
+  ; Выключаем рендеринг и вызов NMI перед отрисовкой фона,
+  ; так как PPU может банально не успеть
+  ; Также отключаем скроллинг, чтобы таблица имён не укатилась
   LDA #%00000000
   STA PPUMASK
   STA PPUCTRL
   STA PPUSCROLL
   STA PPUSCROLL
 
-      load_background:
-      LDA PPUSTATUS
+      load_background: ; Инициализируем всё перед отрисовкой фона
+      LDA PPUSTATUS ; Загружаем адрес первой таблицы имён
       LDX #$20
       STX PPUADDR
       LDX #$00
       STX PPUADDR
-      LDA #<nametable
+      LDA #<nametable ; Берём нижний байт адреса таблицы имён
       STA addr_lo
-      LDA #>nametable
-      STA addr_lo+1
-      LDA #$00
+      LDA #>nametable ; Берём верхний байт адреса таблицы имён
+      STA addr_lo+1 ; Получаем в итоге указатель из двух байт
+      LDA #$00 ; Очищаем аккумулятор
 
-      LDX #$04
-      LDY #$00
+      LDX #$04 ; 4 "страницы" (блоков по 256 байт) надо прочитать
+      LDY #$00 ; Итерируемое значение
       loop:
-        LDA (addr_lo), Y
-        STA PPUDATA
-        INY
-        BNE loop
-        DEX
-        BEQ end
-        INC addr_lo+1
-        JMP loop
+        LDA (addr_lo), Y ; Подгружаем значение из таблицы имён нашей
+        STA PPUDATA ; Грузим её в PPU
+        INY ; Y++
+        BNE loop ; Если не произошло переноса (т.е. > 256) повторяем
+        DEX ; Иначе прочитали страницу, X--
+        BEQ end ; Если X равен 0, то заканчиваем
+        INC addr_lo+1 ; Иначе увеличиваем старший байт на 1
+        JMP loop ; И возвращаемся к циклу
       end:
-      
+  
+  ; Восстанавливаем рендеринг и всё сопуствующее
   LDA #%10010010
-  STA PPUCTRL ; сохраняем данные значения в PPUMASK
+  STA PPUCTRL 
   LDA #%00111110
   STA PPUMASK
 
@@ -110,16 +114,9 @@
 .segment "ZEROPAGE"
   player_x: .res 1
   player_y: .res 1
-  lt_tile_addr: .res 1
-  rt_tile_addr: .res 1
-  lb_tile_addr: .res 1
-  rb_tile_addr: .res 1
   addr_lo: .res 2
-  count: .res 2
-  animate: .res 1
 
-.exportzp player_x, player_y, lt_tile_addr, rt_tile_addr, lb_tile_addr, rb_tile_addr, animate
-.exportzp addr_lo
+.exportzp player_x, player_y
 
 ; Данные
 .segment "RODATA"

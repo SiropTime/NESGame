@@ -1,11 +1,10 @@
 .include "constants.inc"
 
 .segment "ZEROPAGE"
-  .importzp player_x, player_y, animate
+  .importzp player_x, player_y
 
 .segment "CODE"
 .import main
-.import nametable_loop
 .export reset_handler
 .proc reset_handler ; прерывание для резета или первого включения
     SEI ; задание бита игнорирования прерывания.
@@ -30,15 +29,11 @@
     LDA #$21
     STA $020d
 
-    LDX #$08
-    STX animate
-    
- 
- 
-    LDA #%00000001
+    ; Сохраняем атрибуты спрайта игрока
+    LDA #%00000001 ; меняем палитру на 1 для верхних спрайтов
     STA $0202
     STA $0206
-    LDA #%00000000
+    LDA #%00000000 ; меняем палитру на 0 для нижних спрайтов
     STA $020a
     STA $020e
 
