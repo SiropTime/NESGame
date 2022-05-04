@@ -7,7 +7,6 @@
     RTI ; возврат из прерывания
 .endproc
 
-.import nametable_loop
 .import update_player
 .proc nmi_handler ; немаскируемое прерывание
   ; подготавливаем PPU к передаче в OAM
@@ -17,9 +16,22 @@
   LDA #$02
   STA OAMDMA
 
-  
   JSR update_player
-  ; JSR nametable_loop
+
+  LDA #%00000000
+  STA PPUMASK
+  STA PPUCTRL
+
+
+      
+  lda PPUSTATUS
+  lda #%10000000
+  sta PPUCTRL
+  LDA #%10010010
+  STA PPUCTRL ; сохраняем данные значения в PPUMASK
+  LDA #%00111110
+  STA PPUMASK
+
   LDA #$00
   STA PPUSCROLL
   STA PPUSCROLL
@@ -29,6 +41,9 @@
 
 .import reset_handler
 
+
+
+.import load_level
 .export main
 .proc main
     ; загрузка палитры
@@ -45,56 +60,45 @@
       INX
       CPX #$20
       BNE load_palettes
-    LDX #$00
-
+      LDX #$00
     
+    load_background:
+      
+      LDA #$20
+      STA PPUADDR
+      LDA #$00
+      STA PPUADDR
+
+      LDA #<nametable
+      STA addr_lo
+      LDA #>nametable
+      STA addr_hi
+
+      LDX #$04
+      LDY #$00
+
+    loop:
+      LDA (addr_lo), Y
+      STA PPUDATA
+      INY
+      BNE loop
+      INC addr_hi
+      DEX
+      BNE loop
+
     load_sprites:
       LDA sprites, X
       STA $0200, X
       INX
       CPX #$10
       BNE load_sprites
-
-
-      
-
-    ;   ; Загружаем большую звезду
-    ;   ; nametable
-    ;   LDA PPUSTATUS
-    ;   LDA #$21
-    ;   STA PPUADDR
-    ;   LDA #$62
-    ;   STA PPUADDR
-    ;   LDX #$2f
-    ;   STX PPUDATA
-    ;   ; attribute
-    ;   LDA PPUSTATUS
-    ;   LDA #$23
-    ;   STA PPUADDR
-    ;   LDA #$d0
-    ;   STA PPUADDR
-    ;   LDA #%01000000
-    ;   STA PPUDATA
-    ;   ; Загружаем ещё
-    ;   LDA PPUSTATUS
-    ;   LDA #$22
-    ;   STA PPUADDR
-    ;   LDA #$3b
-    ;   STA PPUADDR
-    ;   LDX #$2f
-    ;   STX PPUDATA
-
-    ;   LDA PPUSTATUS
-    ;   LDA #$23
-    ;   STA PPUADDR
-    ;   LDA #$06
-    ;   STA PPUADDR
-    ;   LDA #%00001000
     
-
+    
+    
   forever:
     JMP forever
 .endproc
+
 
 
 .segment "VECTORS" ; передача процессору обработчиков прерываний
@@ -112,30 +116,32 @@
   animate: .res 1
 
 .exportzp player_x, player_y, lt_tile_addr, rt_tile_addr, lb_tile_addr, rb_tile_addr, animate
-
+.exportzp addr_lo, addr_hi
 
 ; Данные
 .segment "RODATA"
 palettes:
   ; палитры фонов
-  .byte $0f, $12, $23, $27
-  .byte $0f, $2b, $3c, $39
-  .byte $0f, $0c, $07, $13
-  .byte $0f, $19, $09, $29
+  .byte $0c, $00, $10, $30
+  .byte $0c, $08, $1c, $05
+  .byte $0c, $07, $27, $35
+  .byte $0c, $07, $19, $39
   ; палитры спрайтов
-  .byte $0f, $2d, $20, $06
-  .byte $0f, $2d, $07, $06
-  .byte $0f, $19, $09, $29
-  .byte $0f, $19, $09, $29
+  .byte $0c, $05, $12, $27
+  .byte $0c, $05, $23, $33
+  .byte $0c, $19, $09, $29
+  .byte $0c, $19, $09, $29
 sprites:
   ; Y, Номер тайла, Аттрибуты, X
-  .byte $70, $10, $00, $80 
-  .byte $70, $11, $00, $88
-  .byte $78, $20, $00, $80
-  .byte $78, $21, $00, $88
-nametable:
-  .incbin "nametable.map"
+  .byte $a0, $10, $00, $80 
+  .byte $a0, $11, $00, $88
+  .byte $a8, $20, $00, $80
+  .byte $a8, $21, $00, $88 
 
+nametable:
+	; Карта, ака таблица имён
+  .incbin "nametable.nam"
 
 .segment "CHR"
 .incbin "ninjastrike1.chr"
+

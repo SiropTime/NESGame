@@ -1,7 +1,7 @@
 .include "constants.inc"
 
 .segment "ZEROPAGE"
-  .importzp player_x, player_y, lt_tile_addr, rt_tile_addr, lb_tile_addr, rb_tile_addr, animate
+  .importzp player_x, player_y, animate
 
 .segment "CODE"
 .import main
@@ -21,16 +21,20 @@
     LDA #$a0
     STA player_y
     LDA #$10
-    STA lt_tile_addr
+    LDA #$10
+    STA $0201
     LDA #$11
-    STA rt_tile_addr
+    STA $0205
     LDA #$20
-    STA lb_tile_addr
+    STA $0209
     LDA #$21
-    STA rb_tile_addr
-    LDA #$08
-    STA animate
+    STA $020d
 
+    LDX #$08
+    STX animate
+    
+ 
+ 
     LDA #%00000001
     STA $0202
     STA $0206
@@ -43,7 +47,8 @@
     STA JOYPAD1
     LDA #$00
     STA JOYPAD1
- 
+
+
   vblankwait:
     BIT PPUSTATUS ; получем состояние ППУ
     BPL vblankwait ; пока он не инициализируется окончательно
@@ -52,9 +57,9 @@
     ; 0 0 0 1 1 1 1 0
     ; 0 Режим оттенков серого, 1 отображение левых 8 пикселей,  2 отображение правых 8 пикселей,  3 включён фон
     ; 4 передний план, 5 выделение красного, 6 выделение зелёного, 7 выделение синего
-    LDA #%10010000
+    LDA #%10010010
     STA PPUCTRL ; сохраняем данные значения в PPUMASK
-    LDA #%00011110
+    LDA #%00111110
     STA PPUMASK
   LDX #$00
   LDA #$FF

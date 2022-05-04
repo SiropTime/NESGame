@@ -60,26 +60,33 @@
     AND #%00000001
     BNE walk_right
     BEQ exit_subroutine
+  if_nothing:
+    JMP exit_subroutine
 
   ; Реализация их выполнения
   jump:
+    DEC player_y
     DEC player_y
     JSR load_coords_y
     JMP exit_subroutine
 
   sitdown:
     INC player_y
+    INC player_y
     JSR load_coords_y
     JMP exit_subroutine
 
   walk_left:  
+    DEC player_x
     DEC player_x
     JSR turn_player_left
     JMP exit_subroutine
   
   walk_right:
     INC player_x
+    INC player_x
     JSR turn_player_right
+    JSR animate_player
     JMP exit_subroutine
 
   exit_subroutine:
@@ -89,6 +96,39 @@
     TAX
     PLA
     PLP
+    RTS
+.endproc
+
+.proc animate_player
+  
+  animate:
+    LDA #$12
+    STA $0201
+    LDA #$13
+    STA $0205
+    LDA #$22
+    STA $0209
+    LDA #$23
+    STA $020d
+    LDX animate
+    loop:
+      DEX
+      BNE loop
+      BEQ end
+  end:
+    JSR unanimate_player
+    RTS
+.endproc
+
+.proc unanimate_player
+    LDA #$10
+    STA $0201
+    LDA #$11
+    STA $0205
+    LDA #$20
+    STA $0209
+    LDA #$21
+    STA $020d
     RTS
 .endproc
 
@@ -114,28 +154,6 @@
     RTS
 .endproc
 
-.proc animate_player
-    PHP
-    PHA
-    TXA
-    PHA
-    TYA
-    PHA
-
-    LDA animate
-    TAX
-    loop:
-      DEX
-      BNE loop
-
-    PLA
-    TAY
-    PLA
-    TAX
-    PLA
-    PLP
-    RTS
-.endproc
 
 .proc load_coords_y
   PHP
@@ -246,16 +264,6 @@
   LDA #%00000000
   STA $020a
   STA $020e
-
-  ; Записываем номера тайлов игрока
-  LDA #$10
-  STA $0201
-  LDA #$11
-  STA $0205
-  LDA #$20
-  STA $0209
-  LDA #$21
-  STA $020d
 
   ; Сохраняем координаты
   ; Верхний левый тайл
