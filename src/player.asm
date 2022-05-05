@@ -1,7 +1,10 @@
 .include "constants.inc"
 
 .segment "ZEROPAGE"
-  .importzp player_x, player_y
+  .importzp player_x, player_y, tmp_x, gravity, jump
+
+.segment "RODATA"
+  .import collision_map, bit_mask
 
 .segment "CODE"
 .export read_joypad
@@ -64,31 +67,25 @@
 
   ; Реализация их выполнения
   jump:
-    DEC player_y
-    DEC player_y
-    JSR load_coords_y
+    
+    JSR make_jump
     JMP exit_subroutine
 
   sitdown:
-    INC player_y
-    INC player_y
-    JSR load_coords_y
     JMP exit_subroutine
 
   walk_left:  
-    DEC player_x
     DEC player_x
     JSR turn_player_left
     JMP exit_subroutine
   
   walk_right:
     INC player_x
-    INC player_x
     JSR turn_player_right
-    JSR animate_player
     JMP exit_subroutine
 
   exit_subroutine:
+    
     PLA
     TAY
     PLA
@@ -106,8 +103,82 @@
     PHA
     TYA
     PHA
-
+    
+    JSR check_collision
+    JSR load_coords_y 
     JSR read_joypad
+    
+    JMP exit_subroutine
+
+  exit_subroutine:
+    PLA
+    TAY
+    PLA
+    TAX
+    PLA
+    PLP
+    RTS
+.endproc
+
+.proc make_jump
+  LDA jump
+  CMP #DEFAULT_JUMP
+  BEQ make_jump
+  BNE exit_subroutine
+  make_jump:
+    DEC jump
+    DEC player_y
+    JMP exit_subroutine
+  
+
+  exit_subroutine:
+    RTS
+.endproc
+
+.proc sitdown
+.endproc
+
+.proc check_collision
+  PHP
+  PHA
+  TXA
+  PHA
+  TYA
+  PHA
+
+  LDA player_x ; Загружаем левую к. X игрока
+  ADC #$10
+  LSR 
+  LSR
+  LSR ; 6 раз делаем логический сдвиг вправо
+  LSR ; тем самым деля на 64
+  LSR
+  LSR 
+  STA tmp_x ; сохраняем во временную переменную
+
+  LDA player_y ; Загружаем верхнюю к. Y игрока
+  ADC #$10
+  LSR 
+  LSR ; делим на 8 тройным логическим сдвигом
+  LSR ; В аккумуляторе остаётся необхожимое значение
+
+  ASL ; Умножаем на 4 арифметическим сдвигом влево
+  ASL
+  ADC tmp_x ; Складываем с X
+  TAY
+
+  LDA collision_map, Y
+  AND bit_mask, X
+  BEQ gravity_inc
+  BNE gravity_stop_inc
+
+  gravity_inc: ; Передаём, что пока не столкнулись
+    LDA #$01 
+    STA gravity
+    JMP exit_subroutine
+  gravity_stop_inc: ; А здесь, что столкнулись
+    LDA #$00
+    STA gravity
     JMP exit_subroutine
 
   exit_subroutine:
@@ -127,28 +198,53 @@
   TXA
   PHA
   TYA
-  PHA
+  PHA 
 
+  LDA jump
+  CMP #DEFAULT_JUMP
+  BEQ saving
+  CMP #$00
+  BEQ go_down
+  BPL continue_jump
+  BNE saving
+  go_down:
+    INC player_y
+    LDA gravity
+    CMP #$00
+    BEQ return_jump
+    JMP saving
+  continue_jump:
+    DEC jump
+    DEC player_y
+    LDA jump
+    CMP #$00
+    BEQ go_down
+    JMP saving
+  return_jump:
+    LDA #DEFAULT_JUMP
+    STA jump
   ; Сохраняем координаты
-  ; Верхний правый тайл
-  LDA player_y
-  STA $0204
+  saving:
+    
+    ; Верхний правый тайл
+    LDA player_y
+    STA $0204
 
-  ; Левый верхний
-  LDA player_y
-  STA $0200
+    ; Левый верхний
+    LDA player_y
+    STA $0200
 
-  ; Нижний правый
-  LDA player_y
-  CLC
-  ADC #$08
-  STA $020c
+    ; Нижний правый
+    LDA player_y
+    CLC
+    ADC #$08
+    STA $020c
 
-  ; Нижний левый
-  LDA player_y
-  CLC
-  ADC #$08
-  STA $0208
+    ; Нижний левый
+    LDA player_y
+    CLC
+    ADC #$08
+    STA $0208
 
   PLA
   TAY

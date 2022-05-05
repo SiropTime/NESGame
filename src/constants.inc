@@ -13,5 +13,11 @@ OAMDMA = $4014 ; инициация передача всей страницы �
 JOYPAD1 = $4016
 JOYPAD2 = $4017
 
+CLEAR_NMI = $00
+DEFAULT_CTRL = %10010010
+DEFAULT_MASK = %00011110
+
+DEFAULT_JUMP = $C0
+
 VRAM_DOWN = $04
 VBLANK_NMI = $80

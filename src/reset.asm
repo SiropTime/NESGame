@@ -1,7 +1,7 @@
 .include "constants.inc"
 
 .segment "ZEROPAGE"
-  .importzp player_x, player_y
+  .importzp player_x, player_y, gravity, jump
 
 .segment "CODE"
 .import main
@@ -15,9 +15,9 @@
     STX PPUMASK ; загружаем обновлённую маску в PPUMASK
 
     ; Инициализируем игрока
-    LDA #$80
+    LDA #$68
     STA player_x
-    LDA #$a0
+    LDA #$cd
     STA player_y
     LDA #$10
     LDA #$10
@@ -28,6 +28,11 @@
     STA $0209
     LDA #$21
     STA $020d
+
+    LDA #$00
+    STA gravity
+    LDA #DEFAULT_JUMP
+    STA jump
 
     ; Сохраняем атрибуты спрайта игрока
     LDA #%00000001 ; меняем палитру на 1 для верхних спрайтов
@@ -54,7 +59,7 @@
     ; 4 передний план, 5 выделение красного, 6 выделение зелёного, 7 выделение синего
     LDA #%10010010
     STA PPUCTRL ; сохраняем данные значения в PPUMASK
-    LDA #%00111110
+    LDA #%00011110
     STA PPUMASK
   LDX #$00
   LDA #$FF
